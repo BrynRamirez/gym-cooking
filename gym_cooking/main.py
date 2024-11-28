@@ -117,7 +117,27 @@ def main_loop(arglist):
             successful=env.successful)
 
 if __name__ == '__main__':
-    arglist = parse_arguments()
+    # Hardcoded argument values
+    import argparse
+    arglist = argparse.Namespace(
+        level="open-divider_salad",
+        num_agents=2,
+        max_num_timesteps=100,
+        max_num_subtasks=14,
+        seed=1,
+        with_image_obs=True,
+        beta=1.3,
+        alpha=0.01,
+        tau=2,
+        cap=75,
+        main_cap=100,
+        play=False,
+        record=True,
+        model1="bd",
+        model2="up",
+        model3=None,
+        model4=None
+    )
     if arglist.play:
         env = gym.envs.make("gym_cooking:overcookedEnv-v0", arglist=arglist)
         env.reset()
@@ -129,5 +149,6 @@ if __name__ == '__main__':
             model_types))) == arglist.num_agents, "num_agents should match the number of models specified"
         fix_seed(seed=arglist.seed)
         main_loop(arglist=arglist)
+
 
 

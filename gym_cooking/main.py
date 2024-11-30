@@ -11,43 +11,9 @@ import numpy as np
 import random
 import argparse
 from collections import namedtuple
+from itertools import product
 
 import gym
-
-
-def parse_arguments():
-    parser = argparse.ArgumentParser("Overcooked 2 argument parser")
-
-    # Environment
-    parser.add_argument("--level", type=str, required=True)
-    parser.add_argument("--num-agents", type=int, required=True)
-    parser.add_argument("--max-num-timesteps", type=int, default=100, help="Max number of timesteps to run")
-    parser.add_argument("--max-num-subtasks", type=int, default=14, help="Max number of subtasks for recipe")
-    parser.add_argument("--seed", type=int, default=1, help="Fix pseudorandom seed")
-    parser.add_argument("--with-image-obs", action="store_true", default=False, help="Return observations as images (instead of objects)")
-
-    # Delegation Planner
-    parser.add_argument("--beta", type=float, default=1.3, help="Beta for softmax in Bayesian delegation updates")
-
-    # Navigation Planner
-    parser.add_argument("--alpha", type=float, default=0.01, help="Alpha for BRTDP")
-    parser.add_argument("--tau", type=int, default=2, help="Normalize v diff")
-    parser.add_argument("--cap", type=int, default=75, help="Max number of steps in each main loop of BRTDP")
-    parser.add_argument("--main-cap", type=int, default=100, help="Max number of main loops in each run of BRTDP")
-
-    # Visualizations
-    parser.add_argument("--play", action="store_true", default=False, help="Play interactive game with keys")
-    parser.add_argument("--record", action="store_true", default=False, help="Save observation at each time step as an image in misc/game/record")
-
-    # Models
-    # Valid options: `bd` = Bayes Delegation; `up` = Uniform Priors
-    # `dc` = Divide & Conquer; `fb` = Fixed Beliefs; `greedy` = Greedy
-    parser.add_argument("--model1", type=str, default=None, help="Model type for agent 1 (bd, up, dc, fb, or greedy)")
-    parser.add_argument("--model2", type=str, default=None, help="Model type for agent 2 (bd, up, dc, fb, or greedy)")
-    parser.add_argument("--model3", type=str, default=None, help="Model type for agent 3 (bd, up, dc, fb, or greedy)")
-    parser.add_argument("--model4", type=str, default=None, help="Model type for agent 4 (bd, up, dc, fb, or greedy)")
-
-    return parser.parse_args()
 
 
 def fix_seed(seed):
@@ -117,38 +83,43 @@ def main_loop(arglist):
             successful=env.successful)
 
 if __name__ == '__main__':
-    # Hardcoded argument values
-    import argparse
-    arglist = argparse.Namespace(
-        level="open-divider_salad",
-        num_agents=2,
-        max_num_timesteps=100,
-        max_num_subtasks=14,
-        seed=1,
-        with_image_obs=True,
-        beta=1.3,
-        alpha=0.01,
-        tau=2,
-        cap=75,
-        main_cap=100,
-        play=False,
-        record=True,
-        model1="bd",
-        model2="up",
-        model3=None,
-        model4=None
-    )
-    if arglist.play:
-        env = gym.envs.make("gym_cooking:overcookedEnv-v0", arglist=arglist)
-        env.reset()
-        game = GamePlay(env.filename, env.world, env.sim_agents)
-        game.on_execute()
-    else:
-        model_types = [arglist.model1, arglist.model2, arglist.model3, arglist.model4]
-        assert len(list(filter(lambda x: x is not None,
-            model_types))) == arglist.num_agents, "num_agents should match the number of models specified"
-        fix_seed(seed=arglist.seed)
-        main_loop(arglist=arglist)
+    # Define possible models
+    models = ["bd", "up", "dc", "fb", "greedy"]
 
+    # Iterate over all combinations of model1 and model2
+    for model1, model2 in product(models, repeat=2):
+        import argparse
+        print(model1, model2)
 
+        # Hardcoded argument values
+        arglist = argparse.Namespace(
+            level="open-divider_salad",
+            num_agents=2,
+            max_num_timesteps=100,
+            max_num_subtasks=14,
+            seed=1,
+            with_image_obs=True,
+            beta=1.3,
+            alpha=0.01,
+            tau=2,
+            cap=75,
+            main_cap=100,
+            play=False,
+            record=True,
+            model1=model1,
+            model2=model2,
+            model3=None,
+            model4=None
+        )
 
+        if arglist.play:
+            env = gym.envs.make("gym_cooking:overcookedEnv-v0", arglist=arglist)
+            env.reset()
+            game = GamePlay(env.filename, env.world, env.sim_agents)
+            game.on_execute()
+        else:
+            model_types = [arglist.model1, arglist.model2, arglist.model3, arglist.model4]
+            assert len(list(filter(lambda x: x is not None,
+                                   model_types))) == arglist.num_agents, "num_agents should match the number of models specified"
+            fix_seed(seed=arglist.seed)
+            main_loop(arglist=arglist)

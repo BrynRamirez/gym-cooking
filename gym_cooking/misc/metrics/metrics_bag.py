@@ -1,4 +1,5 @@
 import dill as pickle
+import os
 import copy
 
 class Bag:
@@ -7,6 +8,8 @@ class Bag:
         self.arglist = arglist
         self.directory = "misc/metrics/pickles/"
         self.filename = filename
+        # Ensure the directory exists
+        os.makedirs(self.directory, exist_ok=True)
         self.set_general()
 
     def set_general(self):
